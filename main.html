@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combo Utilities</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <!-- Sidebar Menu -->
+    <div class="sidebar">
+        <div class="tab-menu">
+            <button class="active" onclick="showTab('optimizerTab', this)">Combo Optimizer</button>
+            <button onclick="showTab('counterTab', this)">Email Domain Counter</button>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content">
+        <h1>Combo Utilities</h1>
+
+        <!-- Combo Optimizer Tab -->
+        <div id="optimizerTab" class="tab active">
+            <h2>Combo Optimizer</h2>
+            <textarea id="inputOptimizer" placeholder="Paste your email combos here..."></textarea>
+            <button class="action-btn" onclick="optimizeEmails()">Optimize Emails</button>
+
+            <h3>Optimized Emails:</h3>
+            <textarea id="outputOptimizer" readonly></textarea>
+        </div>
+
+        <!-- Email Domain Counter Tab -->
+        <div id="counterTab" class="tab">
+            <h2>Email Domain Counter</h2>
+            <textarea id="inputCounter" placeholder="Paste your email combos here..."></textarea>
+            <button class="action-btn" onclick="countDomains()">Count Domains</button>
+
+            <h3>Email Domains:</h3>
+            <ul id="domainList"></ul>
+
+            <h3>Emails from Selected Domain:</h3>
+            <textarea id="filteredEmails" readonly></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to switch between tabs
+    function showTab(tabId, button) {
+        // Hide all tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        // Show the selected tab
+        document.getElementById(tabId).classList.add('active');
+
+        // Update active button
+        document.querySelectorAll('.tab-menu button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        button.classList.add('active');
+    }
+
+    // Function to optimize emails (Combo Optimizer)
+    function optimizeEmails() {
+        let input = document.getElementById('inputOptimizer').value;
+        let lines = input.split(/\r?\n/);
+        let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        let validEmails = lines.filter(line => line.trim() !== "" && emailRegex.test(line.trim()));
+        let output = validEmails.join('\n');
+        document.getElementById('outputOptimizer').value = output;
+    }
+
+    // Function to count the emails by domain (Email Domain Counter)
+    function countDomains() {
+        let input = document.getElementById('inputCounter').value;
+        let lines = input.split(/\r?\n/);
+        let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        let domainCounts = {};
+        let domainEmails = {};
+
+        lines.forEach(line => {
+            let [email, password] = line.split(':').map(part => part.trim());
+            if (emailRegex.test(email)) {
+                let domain = email.split('@')[1];
+                if (!domainCounts[domain]) {
+                    domainCounts[domain] = 0;
+                    domainEmails[domain] = [];
+                }
+                domainCounts[domain]++;
+                domainEmails[domain].push(`${email}:${password}`);
+            }
+        });
+
+        let sortedDomains = Object.entries(domainCounts).sort((a, b) => b[1] - a[1]);
+        let domainList = document.getElementById('domainList');
+        domainList.innerHTML = '';
+
+        sortedDomains.forEach(([domain, count]) => {
+            let listItem = document.createElement('li');
+            listItem.innerHTML = `<span class="domain" onclick="showEmails('${domain}')">${domain} (${count})</span>`;
+            domainList.appendChild(listItem);
+        });
+
+        window.domainEmails = domainEmails;
+    }
+
+    // Function to show emails from a selected domain
+    function showEmails(domain) {
+        let emails = window.domainEmails[domain];
+        document.getElementById('filteredEmails').value = emails.join('\n');
+    }
+</script>
+
+</body>
+</html>
