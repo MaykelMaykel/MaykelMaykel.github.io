@@ -5,6 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Combo Utilities</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <style>
+        .success-message {
+            color: green;
+            display: none;
+            margin-top: 10px;
+        }
+        .drag-drop-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .drag-drop-area.drag-over {
+            border-color: #66f;
+        }
+        .popup {
+            width: 300px;
+            background-color: var(--clr-white);
+            border-radius: 8px;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.05);
+            text-align: center;
+            padding: 20px;
+            color: var(--clr-light-gray);
+            visibility: hidden;
+            transition: 0.5s;
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .popup h2 {
+            font-size: 1.5rem;
+            color: var(--clr-bluish);
+        }
+
+        .popup-open {
+            top: 50%;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .popup button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: var(--clr-green);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0px 3px 5px rgba(0,0,0,0.2);
+        }
+
+        .popup .material-symbols-outlined {
+            font-size: 3rem;
+            color: var(--clr-green);
+        }
+    </style>
 </head>
 <body>
 
@@ -24,16 +84,32 @@
         <!-- Combo Optimizer Tab -->
         <div id="optimizerTab" class="tab active">
             <h2>Combo Optimizer</h2>
+
+            <!-- Drag and Drop Area -->
+            <div class="drag-drop-area" id="optimizerDropArea">
+                Drag & Drop combos here or click to upload
+                <input type="file" id="optimizerFileInput" accept=".txt" style="display: none;" />
+            </div>
+
             <textarea id="inputOptimizer" placeholder="Paste your email combos here..."></textarea>
             <button class="action-btn" onclick="optimizeEmails()">Optimize Emails</button>
 
             <h3>Optimized Emails:</h3>
             <textarea id="outputOptimizer" readonly></textarea>
+            <button class="action-btn" onclick="copyToClipboard('outputOptimizer')">Copy</button>
+            <span id="optimizerCopySuccess" class="success-message">Successfully copied!</span>
         </div>
 
         <!-- Email Domain Counter Tab -->
         <div id="counterTab" class="tab">
             <h2>Email Domain Counter</h2>
+
+            <!-- Drag and Drop Area -->
+            <div class="drag-drop-area" id="counterDropArea">
+                Drag & Drop combos here or click to upload
+                <input type="file" id="counterFileInput" accept=".txt" style="display: none;" />
+            </div>
+
             <textarea id="inputCounter" placeholder="Paste your email combos here..."></textarea>
             <button class="action-btn" onclick="countDomains()">Count Domains</button>
 
@@ -42,77 +118,20 @@
 
             <h3>Emails from Selected Domain:</h3>
             <textarea id="filteredEmails" readonly></textarea>
+            <button class="action-btn" onclick="copyToClipboard('filteredEmails')">Copy</button>
+            <span id="counterCopySuccess" class="success-message">Successfully copied!</span>
         </div>
+    </div>
+
+    <!-- Popup for Copy Success -->
+    <div class="popup">
+        <span class="material-symbols-outlined">done</span>
+        <h2>Copied!</h2>
+        <p>Text has been copied to your clipboard.</p>
+        <button type="button">OK</button>
     </div>
 </div>
 
-<script>
-    // Function to switch between tabs
-    function showTab(tabId, button) {
-        // Hide all tabs
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        // Show the selected tab
-        document.getElementById(tabId).classList.add('active');
-
-        // Update active button
-        document.querySelectorAll('.tab-menu button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        button.classList.add('active');
-    }
-
-    // Function to optimize emails (Combo Optimizer)
-    function optimizeEmails() {
-        let input = document.getElementById('inputOptimizer').value;
-        let lines = input.split(/\r?\n/);
-        let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        let validEmails = lines.filter(line => line.trim() !== "" && emailRegex.test(line.trim()));
-        let output = validEmails.join('\n');
-        document.getElementById('outputOptimizer').value = output;
-    }
-
-    // Function to count the emails by domain (Email Domain Counter)
-    function countDomains() {
-        let input = document.getElementById('inputCounter').value;
-        let lines = input.split(/\r?\n/);
-        let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        let domainCounts = {};
-        let domainEmails = {};
-
-        lines.forEach(line => {
-            let [email, password] = line.split(':').map(part => part.trim());
-            if (emailRegex.test(email)) {
-                let domain = email.split('@')[1];
-                if (!domainCounts[domain]) {
-                    domainCounts[domain] = 0;
-                    domainEmails[domain] = [];
-                }
-                domainCounts[domain]++;
-                domainEmails[domain].push(`${email}:${password}`);
-            }
-        });
-
-        let sortedDomains = Object.entries(domainCounts).sort((a, b) => b[1] - a[1]);
-        let domainList = document.getElementById('domainList');
-        domainList.innerHTML = '';
-
-        sortedDomains.forEach(([domain, count]) => {
-            let listItem = document.createElement('li');
-            listItem.innerHTML = `<span class="domain" onclick="showEmails('${domain}')">${domain} (${count})</span>`;
-            domainList.appendChild(listItem);
-        });
-
-        window.domainEmails = domainEmails;
-    }
-
-    // Function to show emails from a selected domain
-    function showEmails(domain) {
-        let emails = window.domainEmails[domain];
-        document.getElementById('filteredEmails').value = emails.join('\n');
-    }
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
