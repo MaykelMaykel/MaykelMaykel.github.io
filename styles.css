@@ -1,7 +1,7 @@
 /* General body styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-image: url("https://wallpapercave.com/wp/wp12778095.jpg"); /* Add your background image URL here */
+    background-image: url("https://wallpapercave.com/wp/wp12778095.jpg");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -167,6 +167,28 @@ li:hover {
 
 .domain:hover {
     color: #000000;
+}
+
+/* Popup message */
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    color: #fff;
+    border-radius: 8px;
+    display: none;
+}
+
+.popup button {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
 }
 
 /* Mobile responsiveness */
